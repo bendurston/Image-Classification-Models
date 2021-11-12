@@ -1,4 +1,4 @@
 # Image-Classification-Models
 
-## Model another
-VGG-16 some change
+## Model
+VGG-16 with data augmentation
