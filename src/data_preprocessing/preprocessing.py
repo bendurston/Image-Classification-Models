@@ -64,49 +64,57 @@ class PreProcessing:
     
     return driver_data
 
-  def load_train_data(self, height, width):
-    """
-    
-    """
+  def load_data(self, height, width):
+      """
+      
+      """
+      x = []
+      y = []
+      driver_ids = []
+
+      driver_data = self.get_driver_data()
+
+      print('Read train images')
+      for class_number in range(10):
+          print(f'Load folder c{class_number}')
+          class_number_str = 'c' + str(class_number)
+          path = os.path.join(self.base_path, 'imgs/data', class_number_str, '*.jpg')
+          file_paths = glob.glob(path)  # Gets all file names matching given path.
+          sub_x = []
+          sub_y = []
+          for file_path in file_paths:
+              file_name = os.path.basename(file_path)
+              image = self.preprocess_image(file_path, height, width)
+              sub_x.append(image)
+              sub_y.append(class_number)
+              driver_id = driver_data[file_name][0]
+              driver_ids.append(driver_id)
+          x.append(sub_x)
+          y.append(sub_y)
+      return x, y, driver_ids
+
+  def split_data(self, x, y, percentage):
     x_train = []
     y_train = []
-    driver_ids = []
-
-    driver_data = self.get_driver_data()
-
-    print('Read train images')
-    for class_number in range(10):
-        print(f'Load folder c{class_number}')
-        class_number_str = 'c' + str(class_number)
-        path = os.path.join(self.base_path, 'imgs/train', class_number_str, '*.jpg')
-        file_paths = glob.glob(path)  # Gets all file names matching given path.
-        for file_path in file_paths:
-            file_name = os.path.basename(file_path)
-            image = self.preprocess_image(file_path, height, width)
-            x_train.append(image)
-            y_train.append(class_number)
-            driver_id = driver_data[file_name][0]
-            driver_ids.append(driver_id)
-
-    return x_train, y_train, driver_ids
-
-
-  def load_test_data(self, height, width):
     x_test = []
-    x_test_ids = []
+    y_test = []
+    split_points = self.percent_indexes(x, percentage)
+    for index, xi, yi in enumerate(zip(x, y)):
+      for image_number, image, output in enumerate(zip(xi, yi)):
+        if image_number < split_points[index]:
+          x_train.append(image)
+          y_train.append(output)
+        else:
+          x_test.append(image)
+          y_test.append(output)
+    return x_train, y_train, x_test, y_test
     
-    print('Read test images')
+  def percent_indexes(self, x, percentage):
+    split_points = []
+    for xi in x:
+      number_of_images = len(xi)
+      split_point = number_of_images//percentage
+      split_points.append(split_point)
+    return split_points
 
-    path = os.path.join(self.base_path, 'imgs/test/*.jpg')
-    file_paths = glob.glob(path)
-    number_of_files = len(file_paths)
 
-    for count, file_path in enumerate(file_paths):
-        file_name = os.path.basename(file_path)
-        image = self.preprocess_image(file_path, height, width)
-        x_test.append(image)
-        x_test_ids.append(file_name)
-        if count % 1000 == 0:
-            print(f"Read {count} images from {number_of_files}")
-
-    return x_test, x_test_ids

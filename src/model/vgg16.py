@@ -17,7 +17,7 @@ class VGG16:
     ])
     return data_augmentation
 
-  def build_model(self, input_shape=(224,224,1)):
+  def build_model(self, input_shape=(336,336,1)):
     model = Sequential([
       Input(shape=input_shape),                               # Block 1
       self.data_augmentation,
