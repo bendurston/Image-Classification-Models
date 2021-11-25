@@ -2,24 +2,24 @@ import cv2
 import os
 import glob
 import numpy as np
+# from src.data_preprocessing.data_augmentation import random_erasing
 
 class PreProcessing:
   """
   Goes through all images, returns preprocessed tensor.
   """
 
-  def __init__(self, base_path):
-      self.base_path = base_path
-      self.kernel = np.array([[-1, -1, -1],
-                   [-1, 8,-1],
-                   [-1, -1, -1]])
-
+  def __init__(self):
+    self.kernel = np.array([[-1, -1, -1],
+                  [-1, 8,-1],
+                  [-1, -1, -1]])
+  
   def get_colour_type(self, img_path):
     image = cv2.imread(img_path)
     if len(image.shape) == 3: return 3
-    else: return 1
+    return 1
 
-  def preprocess_image(self, img_path, height, width):
+  def preprocess_image(self, img_path, height, width, training):
     """
     Function takes the path to the image and applys the preprocessing.
     """
@@ -42,79 +42,64 @@ class PreProcessing:
     combined = cv2.add(image_sharp, img_gray[1])
     dst = cv2.resize(combined, (width, height))
     img = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
+
+    if training:
+      img = self.random_erasing(img)
     return img
 
-  def get_driver_data(self):
+  def random_erasing(self, image, probability=0.5, sl = 0.02, sh = 0.4, r1 = 0.3, mean=[0.4914, 0.4822, 0.4465]):
     """
-    Returns a dictionary of image name as the key and driver and class as value.
+    Function performs random erasing
     """
-    driver_data = {}
-    path = os.path.join(self.base_path,'driver_imgs_list.csv')
+    if np.random.uniform(0, 1) > probability:
+        return image
+    area = image.shape[0] * image.shape[1]
+    for _ in range(100):
+        target_area = np.random.uniform(sl, sh) * area
+        aspect_ratio = np.random.uniform(r1, 1/r1)
 
-    print('Read drivers data')
+        h = int(round(np.sqrt(target_area * aspect_ratio)))
+        w = int(round(np.sqrt(target_area / aspect_ratio)))
 
-    with open(path, 'r') as file:
-      lines = file.readlines()
-      lines = lines[1:]
-    file.close()
-
-    for line in lines:
-      arr = line.strip().split(',')
-      driver_data[arr[2]] = (arr[0], arr[1])
-    
-    return driver_data
-
-  def load_data(self, height, width):
-      """
-      
-      """
-      x = []
-      y = []
-      driver_ids = []
-
-      driver_data = self.get_driver_data()
-
-      print('Read train images')
-      for class_number in range(10):
-          print(f'Load folder c{class_number}')
-          class_number_str = 'c' + str(class_number)
-          path = os.path.join(self.base_path, 'imgs/data', class_number_str, '*.jpg')
-          file_paths = glob.glob(path)  # Gets all file names matching given path.
-          sub_x = []
-          sub_y = []
-          for file_path in file_paths:
-              file_name = os.path.basename(file_path)
-              image = self.preprocess_image(file_path, height, width)
-              sub_x.append(image)
-              sub_y.append(class_number)
-              driver_id = driver_data[file_name][0]
-              driver_ids.append(driver_id)
-          x.append(sub_x)
-          y.append(sub_y)
-      return x, y, driver_ids
-
-  def split_data(self, x, y, percentage):
+        if w < image.shape[1] and h < image.shape[0]:
+            x1 = np.random.randint(0, image.shape[0] - h)
+            y1 = np.random.randint(0, image.shape[1] - w)
+            if image.shape[2] == 3:
+                image[x1:x1+h, y1:y1+w, 0] = mean[0]
+                image[x1:x1+h, y1:y1+w, 1] = mean[1]
+                image[x1:x1+h, y1:y1+w, 2] = mean[2]
+            else:
+                image[x1:x1+h, y1:y1+w, 0] = mean[0]
+            return image
+    return image
+  
+  def split_data(self, x, y, height, width):
     x_train = []
     y_train = []
     x_test = []
     y_test = []
-    split_points = self.percent_indexes(x, percentage)
-    for index, xi, yi in enumerate(zip(x, y)):
-      for image_number, image, output in enumerate(zip(xi, yi)):
-        if image_number < split_points[index]:
-          x_train.append(image)
-          y_train.append(output)
-        else:
-          x_test.append(image)
-          y_test.append(output)
-    return x_train, y_train, x_test, y_test
     
-  def percent_indexes(self, x, percentage):
+    split_points = self.percent_indexes(x)
+    for class_num, (xi, yi) in enumerate(zip(x, y)):
+      
+      for image_number, (image_path, out) in enumerate(zip(xi, yi)):
+        if image_number < split_points[class_num]:
+          
+          image = self.preprocess_image(image_path, height, width, False)
+          x_test.append(image)
+          y_test.append(out)
+          
+        else:
+          image = self.preprocess_image(image_path, height, width, True)
+          x_train.append(image)
+          y_train.append(out)
+    return np.array(x_train), np.array(y_train), np.array(x_test), np.array(y_test)
+    
+
+  def percent_indexes(self, x):
     split_points = []
     for xi in x:
       number_of_images = len(xi)
-      split_point = number_of_images//percentage
+      split_point = int(number_of_images*0.2)
       split_points.append(split_point)
     return split_points
-
-

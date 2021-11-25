@@ -33,7 +33,7 @@ def random_erasing_image(image, probability=0.5, sl = 0.02, sh = 0.4, r1 = 0.3, 
     """
     if np.random.uniform(0, 1) > probability:
         return image
-    area = image.shape[1] * image.shape[2]
+    area = image.shape[0] * image.shape[1]
     for _ in range(100):
         target_area = np.random.uniform(sl, sh) * area
         aspect_ratio = np.random.uniform(r1, 1/r1)
@@ -41,10 +41,15 @@ def random_erasing_image(image, probability=0.5, sl = 0.02, sh = 0.4, r1 = 0.3, 
         h = int(round(np.sqrt(target_area * aspect_ratio)))
         w = int(round(np.sqrt(target_area / aspect_ratio)))
 
-        if w < image.shape[2] and h < image.shape[1]:
-            x1 = np.random.randint(0, image.shape[1] - h)
-            y1 = np.random.randint(0, image.shape[2] - w)
-            image[x1:x1+h, y1:y1+w] = mean[0]
+        if w < image.shape[1] and h < image.shape[0]:
+            x1 = np.random.randint(0, image.shape[0] - h)
+            y1 = np.random.randint(0, image.shape[1] - w)
+            if image.shape[2] == 3:
+                image[x1:x1+h, y1:y1+w, 0] = mean[0]
+                image[x1:x1+h, y1:y1+w, 1] = mean[1]
+                image[x1:x1+h, y1:y1+w, 2] = mean[2]
+            else:
+                image[x1:x1+h, y1:y1+w, 0] = mean[0]
             return image
     return image
         
