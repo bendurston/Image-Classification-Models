@@ -16,9 +16,8 @@ class LoadData:
       x = []
       y = []
 
-      print('Read images')
+      
       for class_number in range(10):
-        print(f'Load folder c{class_number}')
         class_number_str = 'c' + str(class_number)
         path = os.path.join(self.base_path, 'imgs/data', class_number_str, '*.jpg')
         file_paths = glob.glob(path)  # Gets all file names matching given path.
@@ -32,7 +31,7 @@ class LoadData:
         self.shuffle_data(sub_x)
         x.append(sub_x)
         y.append(sub_y)
-        
+      print("Saved all image paths.")
       return x, y
 
     def shuffle_data(self, x):

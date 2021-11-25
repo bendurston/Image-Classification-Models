@@ -81,7 +81,7 @@ class PreProcessing:
     
     split_points = self.percent_indexes(x)
     for class_num, (xi, yi) in enumerate(zip(x, y)):
-      
+      print(f"Preprocessing class: {class_num}.")
       for image_number, (image_path, out) in enumerate(zip(xi, yi)):
         if image_number < split_points[class_num]:
           

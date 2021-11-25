@@ -10,13 +10,16 @@ from tensorflow.keras.optimizers import Adam, SGD
 
 class VGG16:
 
-  def __init__(self):
-    self.vgg16 = self.build_model()
+  def __init__(self, input_shape=(None, None, 3)):
+    self.vgg16 = self.build_model(input_shape)
     self.vgg16.summary()
 
-  def build_model(self, input_shape=(None,None,3)):
+  def build_model(self, input_shape):
+    data_aug = Sequential([
+      RandomFlip("horizontal")
+    ])
     model = Sequential([
-      Input(shape=input_shape),                               # Block 1
+      data_aug,                               # Block 1
       Conv2D(32, (3, 3), padding='same'),
       BatchNormalization(),
       LeakyReLU(),
@@ -73,6 +76,7 @@ class VGG16:
       Dense(512, activation='relu'),
       Dense(10, activation='softmax')
     ])
+    model.build(input_shape=input_shape)
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
     return model
   
