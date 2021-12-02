@@ -2,7 +2,6 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPool2D, Dense, BatchNormalization, GlobalAveragePooling2D, ReLU, RandomFlip, Dropout
 from tensorflow.keras.optimizers import Adam

@@ -91,26 +91,32 @@ class PreProcessing:
     ------
     Source: https://github.com/zhunzhong07/Random-Erasing/blob/master/transforms.py
     """
+    # Checks if random erasing will be performed.
     if np.random.uniform(0, 1) > probability:
         return image
+    # Get area of image.
     area = image.shape[0] * image.shape[1]
+    # Loops attempting to apply random erasing.
     for _ in range(100):
-        target_area = np.random.uniform(sl, sh) * area
-        aspect_ratio = np.random.uniform(r1, 1/r1)
-
-        h = int(round(np.sqrt(target_area * aspect_ratio)))
-        w = int(round(np.sqrt(target_area / aspect_ratio)))
-
-        if w < image.shape[1] and h < image.shape[0]:
-            x1 = np.random.randint(0, image.shape[0] - h)
-            y1 = np.random.randint(0, image.shape[1] - w)
-            if image.shape[2] == 3:
-                image[x1:x1+h, y1:y1+w, 0] = mean[0]
-                image[x1:x1+h, y1:y1+w, 1] = mean[1]
-                image[x1:x1+h, y1:y1+w, 2] = mean[2]
-            else:
-                image[x1:x1+h, y1:y1+w, 0] = mean[0]
-            return image
+      # Get the target area and the aspect ratio that will apply random erasing to.
+      target_area = np.random.uniform(sl, sh) * area
+      aspect_ratio = np.random.uniform(r1, 1/r1)
+      # Get height and width of random erasing area.
+      h = int(round(np.sqrt(target_area * aspect_ratio)))
+      w = int(round(np.sqrt(target_area / aspect_ratio)))
+      # Check if height and width fits within the bounds of the image.
+      if w < image.shape[1] and h < image.shape[0]:
+        # Get lower bounds of height and width.
+        x1 = np.random.randint(0, image.shape[0] - h)
+        y1 = np.random.randint(0, image.shape[1] - w)
+        # Replace bounds with mean value.
+        if image.shape[2] == 3:
+            image[x1:x1+h, y1:y1+w, 0] = mean[0]
+            image[x1:x1+h, y1:y1+w, 1] = mean[1]
+            image[x1:x1+h, y1:y1+w, 2] = mean[2]
+        else:
+            image[x1:x1+h, y1:y1+w, 0] = mean[0]
+        return image
     return image
   
   def split_data(self, x, y, height, width):
@@ -166,6 +172,7 @@ class PreProcessing:
     split_points = []
     for xi in x:
       number_of_images = len(xi)
+      # Get the index that makes up 20% of the data.
       split_point = int(number_of_images*0.2)
       split_points.append(split_point)
     return split_points
