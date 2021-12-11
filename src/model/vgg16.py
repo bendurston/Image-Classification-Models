@@ -104,7 +104,7 @@ class VGG16:
       # Fully Connected Layers.
       GlobalAveragePooling2D(),
       Dense(1024, activation='relu'),
-      Dropout(0.5),
+      Dropout(0.2),
       Dense(10, activation='softmax')
     ])
     # Build the model with the provided input shape.

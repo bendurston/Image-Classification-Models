@@ -5,14 +5,10 @@ from data_loading.data_loading import LoadData
 from model.vgg16 import VGG16
 
 
-
-
-
-
 if __name__ == '__main__':
   
-  HEIGHT = 256
-  WIDTH = 256
+  HEIGHT = 128
+  WIDTH = 128
 
   load_dotenv()
   PATH = os.getenv('PATH_TO_DATA')
