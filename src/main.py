@@ -5,10 +5,6 @@ from data_loading.data_loading import LoadData
 from model.vgg16 import VGG16
 
 
-
-
-
-
 if __name__ == '__main__':
   
   HEIGHT = 128
